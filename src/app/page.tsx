@@ -1,6 +1,6 @@
 "use client";
 import useSWRInfinite from "swr/infinite";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { uniq } from "lodash";
 import { MASK_SOCIAL_CAMPAIGN, _QUERY } from "./queryConstant";
 
@@ -34,8 +34,10 @@ const getURL = (index: number, prev: any) => {
   };
   return res;
 };
-
+ 
 export default function Home() {
+  const initial: string[] = [];
+  const [holderAddresses, setHolderAddresses] = useState(initial);
   const { data, error, size, setSize, isValidating } = useSWRInfinite(
     (index, prev) => getURL(index, prev),
     _fetcher,
@@ -43,13 +45,13 @@ export default function Home() {
       persistSize: false,
     }
   );
-  let holders: string[] = [];
+   
   useEffect(() => {
+    let holders: string[] = []
     const id = setInterval(() => {
       const hasNextPage =
         data?.[data.length - 1]?.data?.campaign?.nftHolderSnapshot?.holders
           ?.pageInfo?.hasNextPage;
-      console.log("hasNextPage: ", hasNextPage);
       if (hasNextPage && !isValidating) {
         setSize(size + 1);
       } else {
@@ -62,6 +64,7 @@ export default function Home() {
       );
     });
     holders = uniq(holders);
+    setHolderAddresses(holders);
     return () => clearInterval(id);
   }, [data]);
 
